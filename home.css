@@ -1,3 +1,7 @@
+html {
+	background: #07182d;
+}
+
 body {
 	min-height: 100vh;
 	min-height: 100svh;
@@ -81,14 +85,8 @@ body {
 	}
 }
 
-@media (max-width: 640px) {
-	html,
-	body {
-		height: 100%;
-		overflow: hidden;
-	}
-
-	body {
-		min-height: 0;
+@media (max-width: 640px), (pointer: coarse) {
+	.blueprint {
+		display: none;
 	}
 }

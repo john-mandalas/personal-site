@@ -4,8 +4,10 @@
 	if (!canvas || !context) return;
 
 	const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+	const mobileViewport = window.matchMedia("(max-width: 640px)");
 	const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	const frameInterval = coarsePointer ? 1000 / 24 : 1000 / 30;
+	let backgroundDisabled = coarsePointer || mobileViewport.matches;
 	let width = 0;
 	let height = 0;
 	let gridSize = 36;
@@ -19,6 +21,7 @@
 	let lastRipplePoint = null;
 	let lastFrameTime = 0;
 	let resizeTimer = null;
+	let animationFrame = null;
 
 	function emitRipple(x, y, time) {
 		const wavelength = 30 + Math.random() * 24;
@@ -109,11 +112,13 @@
 	}
 
 	function animate(time) {
+		animationFrame = null;
+		if (backgroundDisabled || reduceMotion) return;
 		if (time - lastFrameTime >= frameInterval) {
 			draw(time);
 			lastFrameTime = time;
 		}
-		requestAnimationFrame(animate);
+		animationFrame = requestAnimationFrame(animate);
 	}
 
 	function clearPointer() {
@@ -140,6 +145,15 @@
 	}
 
 	function resize() {
+		backgroundDisabled = coarsePointer || mobileViewport.matches;
+		if (backgroundDisabled) {
+			if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+			animationFrame = null;
+			canvas.width = 1;
+			canvas.height = 1;
+			return;
+		}
+
 		const pixelRatio = Math.min(window.devicePixelRatio || 1, coarsePointer ? 1.25 : 1.5);
 		const previousDots = new Map(dots.map((dot) => [`${dot.column}:${dot.row}`, dot]));
 		width = window.innerWidth;
@@ -162,6 +176,9 @@
 			}
 		}
 		draw(performance.now());
+		if (!reduceMotion && animationFrame === null) {
+			animationFrame = requestAnimationFrame(animate);
+		}
 	}
 
 	window.addEventListener("resize", () => {
@@ -173,7 +190,7 @@
 	}, { passive: true });
 	if (!coarsePointer) {
 		window.addEventListener("pointermove", (event) => {
-			if (event.pointerType === "touch") return;
+			if (backgroundDisabled || event.pointerType === "touch") return;
 			const x = event.clientX;
 			const y = event.clientY;
 			const time = performance.now();
@@ -191,5 +208,4 @@
 	}
 
 	resize();
-	if (!reduceMotion) requestAnimationFrame(animate);
 })();
