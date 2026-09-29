@@ -30,15 +30,6 @@ body {
 	width: min(100% - 32px, 320px);
 }
 
-.profile-placeholder {
-	display: block;
-	flex: none;
-	width: 80px;
-	height: 80px;
-	margin-bottom: 4px;
-	border-radius: 50%;
-}
-
 .home-content h1 {
 	margin: 0 0 4px;
 	font-size: 1em;
