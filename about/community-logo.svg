@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title">
+  <title id="title">Community</title>
+  <rect width="200" height="200" fill="#111"/>
+  <g fill="#fff" font-family="'Arial Black', Impact, sans-serif" font-size="45" font-weight="900" letter-spacing="-3">
+    <text x="20" y="97">CO</text>
+    <text x="20" y="137">MM</text>
+    <text x="20" y="177" font-size="43" letter-spacing="-2">UNITY</text>
+  </g>
+</svg>
