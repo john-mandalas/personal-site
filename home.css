@@ -86,6 +86,17 @@ body {
 }
 
 @media (max-width: 640px), (pointer: coarse) {
+	body {
+		background-color: #07182d;
+		background-image:
+			radial-gradient(circle at 0 0, rgba(180, 216, 249, 0.42) 1px, transparent 1.5px),
+			linear-gradient(rgba(157, 199, 238, 0.055) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(157, 199, 238, 0.055) 1px, transparent 1px),
+			linear-gradient(135deg, #06162b 0%, #0d2b4d 52%, #07182d 100%);
+		background-size: 40px 40px, 40px 40px, 40px 40px, cover;
+		background-position: 0 0, 0 0, 0 0, center;
+	}
+
 	.blueprint {
 		display: none;
 	}
