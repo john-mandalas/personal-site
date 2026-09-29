@@ -80,3 +80,15 @@ body {
 		transition: none;
 	}
 }
+
+@media (max-width: 640px) {
+	html,
+	body {
+		height: 100%;
+		overflow: hidden;
+	}
+
+	body {
+		min-height: 0;
+	}
+}
