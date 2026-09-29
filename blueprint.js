@@ -18,7 +18,7 @@
 	let lastRippleAt = -Infinity;
 	let lastRipplePoint = null;
 	let lastFrameTime = 0;
-	let resizeFrame = null;
+	let resizeTimer = null;
 
 	function emitRipple(x, y, time) {
 		const wavelength = 30 + Math.random() * 24;
@@ -122,8 +122,26 @@
 		if (reduceMotion) draw();
 	}
 
+	function createDot(column, row) {
+		return {
+			x: column * gridSize,
+			y: row * gridSize,
+			column,
+			row,
+			phase: Math.random() * Math.PI * 2,
+			speed: 0.0001 + Math.random() * 0.00012,
+			amplitude: 0.025 + Math.random() * 0.055,
+			driftXPhase: Math.random() * Math.PI * 2,
+			driftYPhase: Math.random() * Math.PI * 2,
+			driftXSpeed: 0.00008 + Math.random() * 0.00008,
+			driftYSpeed: 0.00006 + Math.random() * 0.0001,
+			driftAmplitude: 3.5 + Math.random() * 3
+		};
+	}
+
 	function resize() {
 		const pixelRatio = Math.min(window.devicePixelRatio || 1, coarsePointer ? 1.25 : 1.5);
+		const previousDots = new Map(dots.map((dot) => [`${dot.column}:${dot.row}`, dot]));
 		width = window.innerWidth;
 		height = window.innerHeight;
 		const targetDotCount = coarsePointer ? 600 : 900;
@@ -136,48 +154,41 @@
 		dots = [];
 		for (let column = 0; column < columns; column++) {
 			for (let row = 0; row < rows; row++) {
-				dots.push({
-					x: column * gridSize,
-					y: row * gridSize,
-					column,
-					row,
-					phase: Math.random() * Math.PI * 2,
-					speed: 0.0001 + Math.random() * 0.00012,
-					amplitude: 0.025 + Math.random() * 0.055,
-					driftXPhase: Math.random() * Math.PI * 2,
-					driftYPhase: Math.random() * Math.PI * 2,
-					driftXSpeed: 0.00008 + Math.random() * 0.00008,
-					driftYSpeed: 0.00006 + Math.random() * 0.0001,
-					driftAmplitude: 3.5 + Math.random() * 3
-				});
+				const key = `${column}:${row}`;
+				const existingDot = previousDots.get(key);
+				dots.push(existingDot
+					? { ...existingDot, x: column * gridSize, y: row * gridSize }
+					: createDot(column, row));
 			}
 		}
-		draw();
+		draw(performance.now());
 	}
 
 	window.addEventListener("resize", () => {
-		if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
-		resizeFrame = requestAnimationFrame(() => {
-			resizeFrame = null;
+		clearTimeout(resizeTimer);
+		resizeTimer = setTimeout(() => {
+			resizeTimer = null;
 			resize();
+		}, 140);
+	}, { passive: true });
+	if (!coarsePointer) {
+		window.addEventListener("pointermove", (event) => {
+			if (event.pointerType === "touch") return;
+			const x = event.clientX;
+			const y = event.clientY;
+			const time = performance.now();
+			const moved = !pointer || !lastRipplePoint || Math.hypot(x - lastRipplePoint.x, y - lastRipplePoint.y) >= 16;
+			pointer = { x, y };
+			if (moved && time - lastRippleAt >= 100) emitRipple(x, y, time);
+			if (reduceMotion) draw(time);
+		}, { passive: true });
+		window.addEventListener("pointerleave", clearPointer);
+		window.addEventListener("blur", clearPointer);
+		document.documentElement.addEventListener("pointerleave", clearPointer);
+		document.addEventListener("visibilitychange", () => {
+			if (document.hidden) clearPointer();
 		});
-	}, { passive: true });
-	window.addEventListener("pointermove", (event) => {
-		if (event.pointerType === "touch") return;
-		const x = event.clientX;
-		const y = event.clientY;
-		const time = performance.now();
-		const moved = !pointer || !lastRipplePoint || Math.hypot(x - lastRipplePoint.x, y - lastRipplePoint.y) >= 16;
-		pointer = { x, y };
-		if (moved && time - lastRippleAt >= 100) emitRipple(x, y, time);
-		if (reduceMotion) draw(time);
-	}, { passive: true });
-	window.addEventListener("pointerleave", clearPointer);
-	window.addEventListener("blur", clearPointer);
-	document.documentElement.addEventListener("pointerleave", clearPointer);
-	document.addEventListener("visibilitychange", () => {
-		if (document.hidden) clearPointer();
-	});
+	}
 
 	resize();
 	if (!reduceMotion) requestAnimationFrame(animate);
